@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+
+  # FRONTEND DE USUARIOS 
+  frontend-usuarios:
+    image: nginx:alpine
+    container_name: domiexpress-frontend
+    ports:
+      - "8080:80"                         
+    volumes:
+      - ./users-service/frontend:/usr/share/nginx/html:ro   # para montar la carpeta frontend
+    networks:
+      - domi-network
+    depends_on:
+      - backend-usuarios
+
+  # BACKEND DE USUARIOS 
+  backend-usuarios:
+    build:
+      context: ./users-service             # usa el Dockerfile de esta carpeta
+    container_name: domiexpress-backend
+    ports:
+      - "3000:3000"                        
+    environment:
+      # Variables para conectarse a MySQL
+      DB_HOST: db
+      DB_USER: domiuser
+      DB_PASSWORD: domipass123
+      DB_NAME: domiexpress
+    networks:
+      - domi-network
+    depends_on:
+      - db                                 # esperar a que la bd arranque
+
+  # BASE DE DATOS 
+  db:
+    image: mysql:8.0
+    container_name: domiexpress-db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass123     # contra us root
+      MYSQL_DATABASE: domiexpress          # nombre bd
+      MYSQL_USER: domiuser                 # us de la app
+      MYSQL_PASSWORD: domipass123          # contra del us de la app
+    volumes:
+      - db-data:/var/lib/mysql             # para que los datos persistan aunque el contenedor se detenga
+    networks:
+      - domi-network
+
+  # SERVICIO DE PEDIDOS
+  pedidos-service:
+    image: nginx:alpine
+    container_name: domiexpress-pedidos
+    ports:
+      - "8081:80"                          
+    networks:
+      - domi-network
+
+  # SERVICIO DE NOTIFICACIONES
+  notificaciones-service:
+    image: nginx:alpine
+    container_name: domiexpress-notificaciones
+    ports:
+      - "8082:80"                         
+    networks:
+      - domi-network
+
+# RED COMPARTIDA 
+networks:
+  domi-network:
+    driver: bridge
+
+# VOLUMEN para persistir los datos de MySQL
+volumes:
+  db-data:
