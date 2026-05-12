@@ -65,7 +65,36 @@ def usuarios():
     except:
         registrar_fallo("usuarios")
         return jsonify({"error": "Servicio usuarios no disponible"}), 503
+        
+@app.route("/resumen")
+def resumen():
+    if not verificar_circuito("backend"):
+        resultado_mascotas = {"error": "circuito backend abierto"}
+    else:
+        try:
+            r = requests.get("http://backend:5000/mascotas", timeout=2)
+            registrar_exito("backend")
+            resultado_mascotas = r.json()
+        except:
+            registrar_fallo("backend")
+            resultado_mascotas = {"error": "backend no disponible"}
 
+    if not verificar_circuito("usuarios"):
+        resultado_usuarios = {"error": "circuito usuarios abierto"}
+    else:
+        try:
+            r = requests.get("http://usuarios:5000/usuarios", timeout=2)
+            registrar_exito("usuarios")
+            resultado_usuarios = r.json()
+        except:
+            registrar_fallo("usuarios")
+            resultado_usuarios = {"error": "usuarios no disponible"}
+
+    # Devuelve todo junto, aunque uno haya fallado
+    return jsonify({
+        "mascotas": resultado_mascotas,
+        "usuarios": resultado_usuarios
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
