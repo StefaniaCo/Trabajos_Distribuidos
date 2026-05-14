@@ -94,11 +94,11 @@ En un sistema distribuido, es necesario saber rápidamente cuáles servicios est
 
 Servicio de **inventario** respondiendo correctamente en el puerto 5002:
 
-![Health check - Inventario](evidencias/fase2_1.png)
+![Health check - Inventario](evidencias/fase2,1.png)
 
 Servicio de **pagos** respondiendo correctamente en el puerto 5003:
 
-![Health check - Pagos](evidencias/fase2_2.png)
+![Health check - Pagos](evidencias/fase2,2.png)
 
 Servicio de **pedidos** respondiendo correctamente en el puerto 5001:
 
@@ -148,7 +148,7 @@ docker stop laboratorio-monitoreo-pagos-1
 **Lo que pude ver en los logs:**
 
 
-![Fase 4 - Logs con errores](evidencias/fase4_1.png)
+![Fase 4 - Logs con errores](evidencias/fase4,1.png)
 
 
 El gateway intentó consultar el servicio de pagos y registró el error: `[ERROR] Servicio pagos caído. Total errores: 1`, luego `Total errores: 2`, y el servidor respondió con un código **503** (servicio no disponible).
@@ -156,14 +156,14 @@ El gateway intentó consultar el servicio de pagos y registró el error: `[ERROR
 
 **Respuesta del endpoint `/pagos` con el servicio caído:**
 
-![Fase 4 - Error en pagos](evidencias/fase4_2.png)
+![Fase 4 - Error en pagos](evidencias/fase4,2.png)
 
 El gateway detectó que no pudo conectarse al servicio y devolvió un mensaje claro: `"No se pudo acceder al servicio de pagos"` con `"errores_detectados": 2`.
 
 
 **Estado del monitor con el servicio caído:**
 
-![Fase 4 - Monitor con fallo](evidencias/fase4_3.png)
+![Fase 4 - Monitor con fallo](evidencias/fase4,3.png)
 
 El endpoint `/monitor` reflejó inmediatamente el cambio: el servicio de pagos aparece ahora con estado `"sin conexión"`, mientras que inventario y pedidos siguen funcionando normalmente.
 
@@ -186,7 +186,7 @@ Los logs nos dicen qué pasó en el momento. Las métricas nos dicen qué tanto 
 Aquí se puede ver el sistema operando con todos los servicios activos, con tiempos de respuesta normales en los tres microservicios.
 
 
-![Fase 5 - Métricas acumuladas](evidencias/fase5_1.png)
+![Fase 5 - Métricas acumuladas](evidencias/fase5,1.png)
 
 El endpoint `/metricas` mostró que durante la prueba se realizaron **3 consultas** al servicio de pagos y se registraron **2 errores**, lo que coincide perfectamente con lo que se vio en los logs y la simulación de fallos de la Fase 4.
 
