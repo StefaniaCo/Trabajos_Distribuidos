@@ -19,7 +19,7 @@ El sistema está compuesto por los siguientes componentes:
 - El gateway también expone endpoints de monitoreo (`/monitor`) y métricas (`/metricas`).
 
 
-![Arquitectura del sistema](arquitectura.png)
+![Arquitectura del sistema](evidencias/arquitectura.png)
 
 
 ---
@@ -74,7 +74,7 @@ Sin logs, cuando algo falla no hay forma de saber qué pasó ni en qué servicio
 
 **Evidencia:**
 
-![Fase 1 - Logs del sistema](fase1.png)
+![Fase 1 - Logs del sistema](evidencias/fase1.png)
 
 En la imagen se puede ver cómo cada servicio imprime su actividad con su nombre entre corchetes (`[GATEWAY]`, `[INVENTARIO]`, `[PAGOS]`), el tiempo de respuesta y el código HTTP de cada petición. Por ejemplo, el servicio de inventario respondió en **1.00 segundos** y el de pagos tardó **3.00 segundos** en procesar las solicitudes de pago.
 
@@ -94,15 +94,15 @@ En un sistema distribuido, es necesario saber rápidamente cuáles servicios est
 
 Servicio de **inventario** respondiendo correctamente en el puerto 5002:
 
-![Health check - Inventario](fase2_1.png)
+![Health check - Inventario](evidencias/fase2_1.png)
 
 Servicio de **pagos** respondiendo correctamente en el puerto 5003:
 
-![Health check - Pagos](fase2_2.png)
+![Health check - Pagos](evidencias/fase2_2.png)
 
 Servicio de **pedidos** respondiendo correctamente en el puerto 5001:
 
-![Health check - Pedidos](fase2.png)
+![Health check - Pedidos](evidencias/fase2.png)
 
 Cada servicio responde con su estado y nombre. El gateway puede consultar estos endpoints para saber si los servicios están disponibles antes de redirigir una petición.
 
@@ -120,7 +120,7 @@ En lugar de revisar cada servicio por separado, el monitoreo centralizado da una
 
 **Evidencia:**
 
-![Fase 3 - Monitor centralizado](fase3.png)
+![Fase 3 - Monitor centralizado](evidencias/fase3.png)
 
 En la imagen se puede ver cómo el endpoint `127.0.0.1:5000/monitor` retorna el estado de los tres servicios al mismo tiempo: inventario (`ok`), pagos (`funcionando`) y pedidos (`activo`). Esto da una visión completa del sistema en tiempo real.
 
@@ -142,13 +142,13 @@ No basta con que el sistema funcione cuando todo está bien. Hay que saber cómo
 docker stop laboratorio-monitoreo-pagos-1
 ```
 
-![Apagado del servicio de pagos](fase4.png)
+![Apagado del servicio de pagos](evidencias/fase4.png)
 
 
 **Lo que pude ver en los logs:**
 
 
-![Fase 4 - Logs con errores](fase4_1.png)
+![Fase 4 - Logs con errores](evidencias/fase4_1.png)
 
 
 El gateway intentó consultar el servicio de pagos y registró el error: `[ERROR] Servicio pagos caído. Total errores: 1`, luego `Total errores: 2`, y el servidor respondió con un código **503** (servicio no disponible).
@@ -156,14 +156,14 @@ El gateway intentó consultar el servicio de pagos y registró el error: `[ERROR
 
 **Respuesta del endpoint `/pagos` con el servicio caído:**
 
-![Fase 4 - Error en pagos](fase4_2.png)
+![Fase 4 - Error en pagos](evidencias/fase4_2.png)
 
 El gateway detectó que no pudo conectarse al servicio y devolvió un mensaje claro: `"No se pudo acceder al servicio de pagos"` con `"errores_detectados": 2`.
 
 
 **Estado del monitor con el servicio caído:**
 
-![Fase 4 - Monitor con fallo](fase4_3.png)
+![Fase 4 - Monitor con fallo](evidencias/fase4_3.png)
 
 El endpoint `/monitor` reflejó inmediatamente el cambio: el servicio de pagos aparece ahora con estado `"sin conexión"`, mientras que inventario y pedidos siguen funcionando normalmente.
 
@@ -181,12 +181,12 @@ Los logs nos dicen qué pasó en el momento. Las métricas nos dicen qué tanto 
 
 **Evidencia:**
 
-![Fase 5 - Logs con el sistema funcionando de nuevo](fase5.png)
+![Fase 5 - Logs con el sistema funcionando de nuevo](evidencias/fase5.png)
 
 Aquí se puede ver el sistema operando con todos los servicios activos, con tiempos de respuesta normales en los tres microservicios.
 
 
-![Fase 5 - Métricas acumuladas](fase5_1.png)
+![Fase 5 - Métricas acumuladas](evidencias/fase5_1.png)
 
 El endpoint `/metricas` mostró que durante la prueba se realizaron **3 consultas** al servicio de pagos y se registraron **2 errores**, lo que coincide perfectamente con lo que se vio en los logs y la simulación de fallos de la Fase 4.
 
