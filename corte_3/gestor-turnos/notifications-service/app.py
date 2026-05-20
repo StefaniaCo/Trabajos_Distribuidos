@@ -71,6 +71,10 @@ def get_notifications():
     notifs = [{"id": f[0], "user_id": f[1], "turno": f[2], "mensaje": f[3]} for f in filas]
     return jsonify(notifs)
 
+@app.route("/health")
+def health():
+    return {"status": "ok", "service": "notifications-service"}
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

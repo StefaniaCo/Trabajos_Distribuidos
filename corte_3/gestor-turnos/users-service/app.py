@@ -84,6 +84,9 @@ def get_user(user_id):
         return jsonify({"error": "Usuario no encontrado"}), 404
     return jsonify({"id": fila[0], "nombre": fila[1], "email": fila[2]})
 
+@app.route("/health")
+def health():
+    return {"status": "ok", "service": "users-service"}
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

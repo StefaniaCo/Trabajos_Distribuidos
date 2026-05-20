@@ -94,6 +94,9 @@ def crear_turno():
 
     return jsonify({"mensaje": "Turno creado", "turno": turno, "user_id": user_id})
 
+@app.route("/health")
+def health():
+    return {"status": "ok", "service": "turns-service"}
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
