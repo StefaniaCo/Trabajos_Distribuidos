@@ -14,6 +14,7 @@ ESPERA_SEGUNDOS = 10  # Tiempo que espera antes de intentar reconectarse (half-o
 circuitos = {
     "users": {"fallos": 0, "abierto": False, "desde": None},
     "turns": {"fallos": 0, "abierto": False, "desde": None},
+    "notifications": {"fallos": 0, "abierto": False, "desde": None},
 }
 
 def verificar_circuito(nombre):
@@ -108,6 +109,31 @@ def get_turns():
         return jsonify({"error": "Servicio turnos no disponible"}), 503
 
 
+@app.route("/notifications", methods=["GET"])
+def get_notifications():
+    if not verificar_circuito("notifications"):
+        return jsonify({"error": "Servicio notificaciones bloqueado"}), 503
+    try:
+        r = requests.get("http://notifications-service:5000/notifications", timeout=2)
+        registrar_exito("notifications")
+        return jsonify(r.json())
+    except:
+        registrar_fallo("notifications")
+        return jsonify({"error": "Servicio notificaciones no disponible"}), 503
+    
+
+@app.route("/notify", methods=["POST"])
+def crear_notification():
+    if not verificar_circuito("notifications"):
+        return jsonify({"error": "Servicio notificaciones bloqueado"}), 503
+    try:
+        r = requests.post("http://notifications-service:5000/notify", json=request.json, timeout=2)
+        registrar_exito("notifications")
+        return jsonify(r.json())
+    except:
+        registrar_fallo("notifications")
+        return jsonify({"error": "Servicio notificaciones no disponible"}), 503
+
 # Resumen
 
 @app.route("/resumen", methods=["GET"])
@@ -134,9 +160,21 @@ def resumen():
             registrar_fallo("turns")
             resultado_turns = {"error": "turns no disponible"}
 
+    if not verificar_circuito("notifications"):
+        resultado_notifications = {"error": "circuito notifications abierto"}
+    else:
+        try:
+            r = requests.get("http://notifications-service:5000/notifications", timeout=2)
+            registrar_exito("notifications")
+            resultado_notifications = r.json()
+        except:
+            registrar_fallo("notifications")
+            resultado_notifications = {"error": "notifications no disponible"}
+
     return jsonify({
         "usuarios": resultado_users,
-        "turnos":   resultado_turns
+        "turnos":   resultado_turns,
+        "notificaciones": resultado_notifications
     })
 
 
