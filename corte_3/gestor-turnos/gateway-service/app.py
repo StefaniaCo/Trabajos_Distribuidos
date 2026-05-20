@@ -177,6 +177,29 @@ def resumen():
         "notificaciones": resultado_notifications
     })
 
+@app.route("/estado/users")
+def estado_users():
+    try:
+        response = requests.get("http://users-service:5000/health", timeout=3)
+        return jsonify(response.json())
+    except:
+        return jsonify({"status": "down"}), 503
+
+@app.route("/estado/turns")
+def estado_turns():
+    try:
+        response = requests.get("http://turns-service:5000/health", timeout=3)
+        return jsonify(response.json())
+    except:
+        return jsonify({"status": "down"}), 503
+
+@app.route("/estado/notifications")
+def estado_notifications():
+    try:
+        response = requests.get("http://notifications-service:5000/health", timeout=3)
+        return jsonify(response.json())
+    except:
+        return jsonify({"status": "down"}), 503
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
