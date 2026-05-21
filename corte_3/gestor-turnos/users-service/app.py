@@ -49,18 +49,21 @@ crear_tabla()
 
 @app.route("/users", methods=["GET"])
 def get_users():
+    print("[USERS] Consultando usuarios", flush=True)
     conn = get_connection()
     cur  = conn.cursor()
     cur.execute("SELECT id, nombre, email FROM usuarios")
     filas = cur.fetchall()
     conn.close()
     usuarios = [{"id": f[0], "nombre": f[1], "email": f[2]} for f in filas]
+    print(f"[USERS] {len(usuarios)} usuarios encontrados", flush=True)
     return jsonify(usuarios)
 
 
 @app.route("/users", methods=["POST"])
 def crear_user():
     data = request.json
+    print(f"[USERS] Creando usuario: {data['nombre']}", flush=True)
     conn = get_connection()
     cur  = conn.cursor()
     cur.execute(
@@ -70,11 +73,13 @@ def crear_user():
     nuevo_id = cur.fetchone()[0]
     conn.commit()
     conn.close()
+    print(f"[USERS] Usuario creado con id: {nuevo_id}", flush=True)
     return jsonify({"mensaje": "Usuario creado", "id": nuevo_id})
 
 
 @app.route("/users/<int:user_id>", methods=["GET"])
 def get_user(user_id):
+    print(f"[USERS] Buscando usuario id: {user_id}", flush=True)
     conn = get_connection()
     cur  = conn.cursor()
     cur.execute("SELECT id, nombre, email FROM usuarios WHERE id = %s", (user_id,))

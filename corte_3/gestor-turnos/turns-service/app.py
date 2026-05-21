@@ -45,6 +45,7 @@ crear_tabla()
 
 @app.route("/turns", methods=["GET"])
 def get_turns():
+    print("[TURNS] Consultando turnos", flush=True)
     conn = get_connection()
     cur  = conn.cursor()
     cur.execute("SELECT id, turno, user_id FROM turnos")
@@ -58,6 +59,7 @@ def get_turns():
 def crear_turno():
     data    = request.json
     user_id = data.get("user_id")
+    print(f"[TURNS] Creando turno para user_id: {user_id}", flush=True)
 
     # Paso 1 (Validar que el usuario existe en users-service con un timeout de 3s) 
     try:
@@ -74,6 +76,7 @@ def crear_turno():
     cur.execute("SELECT COUNT(*) FROM turnos")
     total = cur.fetchone()[0]
     turno = f"T{total + 1}"
+    print(f"[TURNS] Turno generado: {turno}", flush=True)
 
     cur.execute(
         "INSERT INTO turnos (turno, user_id) VALUES (%s, %s)",
@@ -89,6 +92,7 @@ def crear_turno():
             "turno":   turno,
             "mensaje": f"Tu turno es {turno}"
         }, timeout=2)
+        print("[TURNS] Notificación enviada", flush=True)
     except:
         print("Notificación no enviada, pero el turno fue creado", flush=True)
 

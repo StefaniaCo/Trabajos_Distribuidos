@@ -41,10 +41,11 @@ def verificar_circuito(nombre):
 def registrar_exito(nombre):
 # La petición funcionó: reinicia el contador y cierra el circuito.  
     c = circuitos[nombre]
+    if c["abierto"]:
+        print(f"Circuito {nombre} CERRADO (recuperado)", flush=True)
     c["fallos"]  = 0
     c["abierto"] = False
     c["desde"]   = None
-    print(f"Circuito {nombre} CERRADO (recuperado)", flush=True)
 
 def registrar_fallo(nombre):
     # La petición falló: suma un fallo. Si llega a 3, abre el circuito
@@ -62,12 +63,15 @@ def registrar_fallo(nombre):
 
 @app.route("/users", methods=["GET"])
 def get_users():
+    inicio = time.time()
     if not verificar_circuito("users"):
         return jsonify({"error": "Servicio usuarios bloqueado"}), 503
     try:
         r = requests.get("http://users-service:5000/users", timeout=2)
         registrar_exito("users")
         peticiones["users"] += 1
+        fin = time.time()
+        print(f"[INFO] Tiempo de respuesta users: {fin - inicio}", flush=True)
         return jsonify(r.json())
     except:
         registrar_fallo("users")
@@ -77,12 +81,15 @@ def get_users():
 
 @app.route("/users", methods=["POST"])
 def crear_user():
+    inicio = time.time()
     if not verificar_circuito("users"):
         return jsonify({"error": "Servicio usuarios bloqueado"}), 503
     try:
         r = requests.post("http://users-service:5000/users", json=request.json, timeout=2)
         registrar_exito("users")
         peticiones["users"] += 1
+        fin = time.time()
+        print(f"[INFO] Tiempo de respuesta users POST: {fin - inicio}", flush=True)
         return jsonify(r.json())
     except:
         registrar_fallo("users")
@@ -94,12 +101,15 @@ def crear_user():
 
 @app.route("/turn", methods=["POST"])
 def crear_turno():
+    inicio = time.time()
     if not verificar_circuito("turns"):
         return jsonify({"error": "Servicio turnos bloqueado"}), 503
     try:
         r = requests.post("http://turns-service:5000/turn", json=request.json, timeout=2)
         registrar_exito("turns")
         peticiones["turns"] += 1
+        fin = time.time()
+        print(f"[INFO] Tiempo de respuesta turns POST: {fin - inicio}", flush=True)
         return jsonify(r.json())
     except:
         registrar_fallo("turns")
@@ -109,12 +119,15 @@ def crear_turno():
 
 @app.route("/turns", methods=["GET"])
 def get_turns():
+    inicio = time.time()
     if not verificar_circuito("turns"):
         return jsonify({"error": "Servicio turnos bloqueado"}), 503
     try:
         r = requests.get("http://turns-service:5000/turns", timeout=2)
         registrar_exito("turns")
         peticiones["turns"] += 1
+        fin = time.time()
+        print(f"[INFO] Tiempo de respuesta turns GET: {fin - inicio}", flush=True)
         return jsonify(r.json())
     except:
         registrar_fallo("turns")
@@ -124,12 +137,15 @@ def get_turns():
 
 @app.route("/notifications", methods=["GET"])
 def get_notifications():
+    inicio = time.time()
     if not verificar_circuito("notifications"):
         return jsonify({"error": "Servicio notificaciones bloqueado"}), 503
     try:
         r = requests.get("http://notifications-service:5000/notifications", timeout=2)
         registrar_exito("notifications")
         peticiones["notifications"] += 1
+        fin = time.time()
+        print(f"[INFO] Tiempo de respuesta notifications GET: {fin - inicio}", flush=True)
         return jsonify(r.json())
     except:
         registrar_fallo("notifications")
@@ -139,12 +155,15 @@ def get_notifications():
 
 @app.route("/notify", methods=["POST"])
 def crear_notification():
+    inicio = time.time()
     if not verificar_circuito("notifications"):
         return jsonify({"error": "Servicio notificaciones bloqueado"}), 503
     try:
         r = requests.post("http://notifications-service:5000/notify", json=request.json, timeout=2)
         registrar_exito("notifications")
         peticiones["notifications"] += 1
+        fin = time.time()
+        print(f"[INFO] Tiempo de respuesta notifications POST: {fin - inicio}", flush=True)
         return jsonify(r.json())
     except:
         registrar_fallo("notifications")

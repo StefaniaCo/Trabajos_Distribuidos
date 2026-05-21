@@ -48,6 +48,7 @@ crear_tabla()
 # Recibe la notificación de turns-service y la guarda
 def notify():
     data = request.json
+    print(f"[NOTIFICATIONS] Registrando notificación para user_id: {data['user_id']} turno: {data['turno']}", flush=True)
     conn = get_connection()
     cur  = conn.cursor()
     cur.execute(
@@ -56,6 +57,7 @@ def notify():
     )
     conn.commit()
     conn.close()
+    print("[NOTIFICATIONS] Notificación guardada", flush=True)
     return jsonify({"mensaje": "Notificación registrada"})
 
 
@@ -63,6 +65,7 @@ def notify():
 # Devuelve el historial completo de notificaciones
 
 def get_notifications():
+    print("[NOTIFICATIONS] Consultando historial de notificaciones", flush=True)
     conn = get_connection()
     cur  = conn.cursor()
     cur.execute("SELECT id, user_id, turno, mensaje FROM notificaciones")
