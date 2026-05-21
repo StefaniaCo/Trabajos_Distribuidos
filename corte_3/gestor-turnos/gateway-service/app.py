@@ -15,7 +15,12 @@ circuitos = {
     "users": {"fallos": 0, "abierto": False, "desde": None},
     "turns": {"fallos": 0, "abierto": False, "desde": None},
     "notifications": {"fallos": 0, "abierto": False, "desde": None},
+    
 }
+
+peticiones = {"users": 0, 
+              "turns": 0, 
+              "notifications": 0}
 
 def verificar_circuito(nombre):
     c = circuitos[nombre]
@@ -62,9 +67,11 @@ def get_users():
     try:
         r = requests.get("http://users-service:5000/users", timeout=2)
         registrar_exito("users")
+        peticiones["users"] += 1
         return jsonify(r.json())
     except:
         registrar_fallo("users")
+        peticiones["users"] += 1
         return jsonify({"error": "Servicio usuarios no disponible"}), 503
 
 
@@ -75,9 +82,11 @@ def crear_user():
     try:
         r = requests.post("http://users-service:5000/users", json=request.json, timeout=2)
         registrar_exito("users")
+        peticiones["users"] += 1
         return jsonify(r.json())
     except:
         registrar_fallo("users")
+        peticiones["users"] += 1
         return jsonify({"error": "Servicio usuarios no disponible"}), 503
 
 
@@ -90,9 +99,11 @@ def crear_turno():
     try:
         r = requests.post("http://turns-service:5000/turn", json=request.json, timeout=2)
         registrar_exito("turns")
+        peticiones["turns"] += 1
         return jsonify(r.json())
     except:
         registrar_fallo("turns")
+        peticiones["turns"] += 1
         return jsonify({"error": "Servicio turnos no disponible"}), 503
 
 
@@ -103,9 +114,11 @@ def get_turns():
     try:
         r = requests.get("http://turns-service:5000/turns", timeout=2)
         registrar_exito("turns")
+        peticiones["turns"] += 1
         return jsonify(r.json())
     except:
         registrar_fallo("turns")
+        peticiones["turns"] += 1
         return jsonify({"error": "Servicio turnos no disponible"}), 503
 
 
@@ -116,9 +129,11 @@ def get_notifications():
     try:
         r = requests.get("http://notifications-service:5000/notifications", timeout=2)
         registrar_exito("notifications")
+        peticiones["notifications"] += 1
         return jsonify(r.json())
     except:
         registrar_fallo("notifications")
+        peticiones["notifications"] += 1
         return jsonify({"error": "Servicio notificaciones no disponible"}), 503
     
 
@@ -129,9 +144,11 @@ def crear_notification():
     try:
         r = requests.post("http://notifications-service:5000/notify", json=request.json, timeout=2)
         registrar_exito("notifications")
+        peticiones["notifications"] += 1
         return jsonify(r.json())
     except:
         registrar_fallo("notifications")
+        peticiones["notifications"] += 1
         return jsonify({"error": "Servicio notificaciones no disponible"}), 503
 
 # Resumen
@@ -144,9 +161,11 @@ def resumen():
         try:
             r = requests.get("http://users-service:5000/users", timeout=2)
             registrar_exito("users")
+            peticiones["users"] += 1
             resultado_users = r.json()
         except:
             registrar_fallo("users")
+            peticiones["users"] +=1
             resultado_users = {"error": "users no disponible"}
 
     if not verificar_circuito("turns"):
@@ -155,9 +174,11 @@ def resumen():
         try:
             r = requests.get("http://turns-service:5000/turns", timeout=2)
             registrar_exito("turns")
+            peticiones["turns"] +=1
             resultado_turns = r.json()
         except:
             registrar_fallo("turns")
+            peticiones["turns"] += 1
             resultado_turns = {"error": "turns no disponible"}
 
     if not verificar_circuito("notifications"):
@@ -166,9 +187,11 @@ def resumen():
         try:
             r = requests.get("http://notifications-service:5000/notifications", timeout=2)
             registrar_exito("notifications")
+            peticiones["notifications"] += 1
             resultado_notifications = r.json()
         except:
             registrar_fallo("notifications")
+            peticiones["notifications"] +=1
             resultado_notifications = {"error": "notifications no disponible"}
 
     return jsonify({
@@ -200,6 +223,41 @@ def estado_notifications():
         return jsonify(response.json())
     except:
         return jsonify({"status": "down"}), 503
+
+
+@app.route("/monitor")
+def monitor():
+    servicios = {
+        "users-service":         "http://users-service:5000/health",
+        "turns-service":         "http://turns-service:5000/health",
+        "notifications-service": "http://notifications-service:5000/health",
+    }
+    resultado = {}
+    for nombre, url in servicios.items():
+        inicio = time.time()
+        try:
+            r = requests.get(url, timeout=2)
+            latencia = time.time() - inicio
+            resultado[nombre] = {
+                "estado":   r.json().get("status", "ok"),
+                "latencia": latencia,
+            }
+        except:
+            latencia = time.time() - inicio
+            resultado[nombre] = {
+                "estado":   "sin conexión",
+                "latencia": latencia,
+            }
+
+    return jsonify({
+        "servicios": resultado,
+        "fallos": {
+            "users":         circuitos["users"]["fallos"],
+            "turns":         circuitos["turns"]["fallos"],
+            "notifications": circuitos["notifications"]["fallos"],
+        },
+        "peticiones": peticiones
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
