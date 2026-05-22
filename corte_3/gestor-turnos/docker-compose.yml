@@ -8,6 +8,7 @@ services:
       - users-service
       - turns-service
       - notifications-service
+      - servicios-service
     env_file: .env
 
   users-service:
@@ -34,6 +35,14 @@ services:
       - "5003:5000"
     depends_on:
       - db-notifications
+    env_file: .env
+  
+  servicios-service:
+    build: ./servicios-service
+    ports:
+      - "5004:5000"
+    depends_on:
+      - db-servicios
     env_file: .env
 
   db-users:
@@ -68,8 +77,18 @@ services:
       - vol-notifications:/var/lib/postgresql/data
     ports:
       - "5434:5432"
+  
+  db-servicios:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: servicios_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - vol-servicios:/var/lib/postgresql/data
 
 volumes:
   vol-users:
   vol-turns:
   vol-notifications:
+  vol-servicios:

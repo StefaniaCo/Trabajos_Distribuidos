@@ -15,12 +15,14 @@ circuitos = {
     "users": {"fallos": 0, "abierto": False, "desde": None},
     "turns": {"fallos": 0, "abierto": False, "desde": None},
     "notifications": {"fallos": 0, "abierto": False, "desde": None},
+    "servicios": {"fallos": 0, "abierto": False, "desde": None},
     
 }
 
 peticiones = {"users": 0, 
               "turns": 0, 
-              "notifications": 0}
+              "notifications": 0,
+              "servicios": 0}
 
 def verificar_circuito(nombre):
     c = circuitos[nombre]
@@ -170,6 +172,42 @@ def crear_notification():
         peticiones["notifications"] += 1
         return jsonify({"error": "Servicio notificaciones no disponible"}), 503
 
+
+@app.route("/servicios", methods=["GET"])
+def get_servicios():
+    inicio = time.time()
+    if not verificar_circuito("servicios"):
+        return jsonify({"error": "Servicio bloqueado"}), 503
+    try:
+        r = requests.get("http://servicios-service:5000/servicios", timeout=2)
+        registrar_exito("servicios")
+        peticiones["servicios"] += 1
+        fin = time.time()
+        print(f"[INFO] Tiempo de respuesta servicios GET: {fin - inicio}", flush=True)
+        return jsonify(r.json())
+    except:
+        registrar_fallo("servicios")
+        peticiones["servicios"] += 1
+        return jsonify({"error": "Servicio servicios no disponible"}), 503
+
+
+@app.route("/servicios", methods=["POST"])
+def crear_servicio():
+    inicio = time.time()
+    if not verificar_circuito("servicios"):
+        return jsonify({"error": "Servicio bloqueado"}), 503
+    try:
+        r = requests.post("http://servicios-service:5000/servicios", json=request.json, timeout=2)
+        registrar_exito("servicios")
+        peticiones["servicios"] += 1
+        fin = time.time()
+        print(f"[INFO] Tiempo de respuesta servicios POST: {fin - inicio}", flush=True)
+        return jsonify(r.json())
+    except:
+        registrar_fallo("servicios")
+        peticiones["servicios"] += 1
+        return jsonify({"error": "Servicio servicios no disponible"}), 503
+
 # Resumen
 
 @app.route("/resumen", methods=["GET"])
@@ -213,10 +251,24 @@ def resumen():
             peticiones["notifications"] +=1
             resultado_notifications = {"error": "notifications no disponible"}
 
+    if not verificar_circuito("servicios"):
+        resultado_servicios = {"error": "circuito servicios abierto"}
+    else:
+        try:
+            r = requests.get("http://servicios-service:5000/servicios", timeout=2)
+            registrar_exito("servicios")
+            peticiones["servicios"] += 1
+            resultado_servicios = r.json()
+        except:
+            registrar_fallo("servicios")
+            peticiones["servicios"] += 1
+            resultado_servicios = {"error": "servicios no disponible"}
+
     return jsonify({
         "usuarios": resultado_users,
         "turnos":   resultado_turns,
-        "notificaciones": resultado_notifications
+        "notificaciones": resultado_notifications,
+        "servicios": resultado_servicios
     })
 
 @app.route("/estado/users")
@@ -243,6 +295,14 @@ def estado_notifications():
     except:
         return jsonify({"status": "down"}), 503
 
+@app.route("/estado/servicios")
+def estado_servicios():
+    try:
+        response = requests.get("http://servicios-service:5000/health", timeout=3)
+        return jsonify(response.json())
+    except:
+        return jsonify({"status": "down"}), 503
+
 
 @app.route("/monitor")
 def monitor():
@@ -250,6 +310,7 @@ def monitor():
         "users-service":         "http://users-service:5000/health",
         "turns-service":         "http://turns-service:5000/health",
         "notifications-service": "http://notifications-service:5000/health",
+        "servicios-service": "http://servicios-service:5000/health",
     }
     resultado = {}
     for nombre, url in servicios.items():
@@ -274,6 +335,7 @@ def monitor():
             "users":         circuitos["users"]["fallos"],
             "turns":         circuitos["turns"]["fallos"],
             "notifications": circuitos["notifications"]["fallos"],
+            "servicios":     circuitos["servicios"]["fallos"],
         },
         "peticiones": peticiones
     })
