@@ -1,0 +1,94 @@
+services:
+
+  gateway-service:
+    build: ./gateway-service
+    ports:
+      - "5000:5000"
+    depends_on:
+      - users-service
+      - turns-service
+      - notifications-service
+      - servicios-service
+    env_file: .env
+
+  users-service:
+    build: ./users-service
+    ports:
+      - "5001:5000"
+    depends_on:
+      - db-users
+    env_file: .env
+
+  turns-service:
+    build: ./turns-service
+    ports:
+      - "5002:5000"
+    depends_on:
+      - db-turns
+      - users-service
+      - notifications-service
+    env_file: .env
+
+  notifications-service:
+    build: ./notifications-service
+    ports:
+      - "5003:5000"
+    depends_on:
+      - db-notifications
+    env_file: .env
+  
+  servicios-service:
+    build: ./servicios-service
+    ports:
+      - "5004:5000"
+    depends_on:
+      - db-servicios
+    env_file: .env
+
+  db-users:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: users_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - vol-users:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  db-turns:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: turns_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - vol-turns:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  db-notifications:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: notifications_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - vol-notifications:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+  
+  db-servicios:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: servicios_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - vol-servicios:/var/lib/postgresql/data
+
+volumes:
+  vol-users:
+  vol-turns:
+  vol-notifications:
+  vol-servicios:
